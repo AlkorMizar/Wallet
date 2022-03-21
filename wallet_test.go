@@ -20,6 +20,7 @@ func TestBalance(t *testing.T) {
 	}
 }
 
+//test for Deposite func with correct input
 func TestDepositCorrectInput(t *testing.T) {
 	tests := map[string]struct {
 		input Bitcoin
@@ -47,6 +48,7 @@ func TestDepositCorrectInput(t *testing.T) {
 	}
 }
 
+//test for Deposite func with incorrect input
 func TestDepositIncorrectInput(t *testing.T) {
 	var wallet Wallet
 
@@ -56,11 +58,13 @@ func TestDepositIncorrectInput(t *testing.T) {
 	}
 }
 
+//structure for input variables
 type input struct {
 	deopsitInp Bitcoin
 	withdraw   Bitcoin
 }
 
+//test for Withdraw func with correct input
 func TestWithdrawCorrectInput(t *testing.T) {
 	tests := map[string]struct {
 		input input
@@ -96,6 +100,7 @@ func TestWithdrawCorrectInput(t *testing.T) {
 	}
 }
 
+//test for Withdraw func with incorrect input
 func TestWithdrawIncorrectInput(t *testing.T) {
 	tests := map[string]struct {
 		input input
