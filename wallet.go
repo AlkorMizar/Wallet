@@ -10,6 +10,11 @@ type Wallet struct {
 	balance Bitcoin
 }
 
+//Get balance of this wallet
+func (w Wallet) Balance() (res Bitcoin) {
+	return w.balance
+}
+
 // Deposite on this wallet.
 //bit >= 0
 func (w *Wallet) Deposit(bit Bitcoin) (e error) {
@@ -33,9 +38,4 @@ func (w *Wallet) Withdraw(bit Bitcoin) (e error) {
 
 	w.balance -= bit
 	return nil
-}
-
-//Get balance of this wallet
-func (w Wallet) Balance() (res Bitcoin) {
-	return w.balance
 }
