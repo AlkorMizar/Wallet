@@ -5,8 +5,7 @@ import (
 )
 
 var (
-	ErrNegDeposite        = errors.New("negative deposite")
-	ErrNegWithdraw        = errors.New("negative withdraw")
+	ErrIncorrectInput     = errors.New("incorrect input")
 	ErrNotEnoughOnBalance = errors.New("balance less then withdraw amount")
 )
 
@@ -25,7 +24,7 @@ func (w Wallet) Balance() (res Bitcoin) {
 // bit >= 0
 func (w *Wallet) Deposit(bit Bitcoin) error {
 	if bit < 0 {
-		return ErrNegDeposite
+		return ErrIncorrectInput
 	}
 
 	w.balance += bit
@@ -37,7 +36,7 @@ func (w *Wallet) Deposit(bit Bitcoin) error {
 // bit >= 0 and can't be bigger than wallets balance
 func (w *Wallet) Withdraw(bit Bitcoin) error {
 	if bit < 0 {
-		return ErrNegWithdraw
+		return ErrIncorrectInput
 	}
 
 	if w.balance-bit < 0 {

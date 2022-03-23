@@ -29,7 +29,7 @@ func TestDeposit(t *testing.T) {
 		"zero":   {input: 0, want: output{nil, 0}},
 		"float":  {input: 12.15, want: output{nil, 12.15}},
 
-		"negative": {input: -1.56, want: output{wallet.ErrNegDeposite, 0}},
+		"negative": {input: -1.56, want: output{wallet.ErrIncorrectInput, 0}},
 	}
 
 	for name, tc := range tests {
@@ -63,7 +63,7 @@ func TestWithdraw(t *testing.T) {
 		"zero withdraw":     {input: input{12.3, 0}, want: output{nil, 12.3}},
 		"big precision":     {input: input{1234.123456789, 12.815647935111}, want: output{nil, 1221.307808853889}},
 
-		"negtive withdraw":               {input: input{11.3, -16.5}, want: output{wallet.ErrNegWithdraw, 11.3}},
+		"negtive withdraw":               {input: input{11.3, -16.5}, want: output{wallet.ErrIncorrectInput, 11.3}},
 		"float withdraw more than exist": {input: input{1.23567, 8.9}, want: output{wallet.ErrNotEnoughOnBalance, 1.23567}},
 		"withdraw more than exist":       {input: input{10, 20}, want: output{wallet.ErrNotEnoughOnBalance, 10}},
 	}
