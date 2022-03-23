@@ -51,7 +51,7 @@ func TestDeposit(t *testing.T) {
 }
 
 // test for Withdraw func
-func TestWithdrawCorrectInput(t *testing.T) {
+func TestWithdraw(t *testing.T) {
 	tests := map[string]struct {
 		input input
 		want  output
