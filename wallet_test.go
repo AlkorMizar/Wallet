@@ -1,46 +1,48 @@
-package wallet
+package wallet_test
 
 import (
 	"math"
 	"testing"
+
+	wallet "github.com/AlkorMizar/Wallet"
 )
 
-//general test for accessing wallet balance
-func TestBalance(t *testing.T) {
-
-	var wallet Wallet
-	wallet.balance = 10
-
-	got := wallet.Balance()
-
-	if math.Abs(float64(wallet.balance-got)) > 0.00000000000001 {
-		t.Fatalf("Erorr expected in test. Expected:\n%f\nGot:\n%f", wallet.balance, got)
-	} else {
-		t.Log("Test went right")
-	}
+// structure for input variables
+type input struct {
+	deopsitInp wallet.Bitcoin
+	withdraw   wallet.Bitcoin
 }
 
-//test for Deposite func with correct input
-func TestDepositCorrectInput(t *testing.T) {
+// structure for expected output
+type output struct {
+	err error
+	res wallet.Bitcoin
+}
+
+// test for Deposite func
+func TestDeposit(t *testing.T) {
 	tests := map[string]struct {
-		input Bitcoin
-		want  Bitcoin
+		input wallet.Bitcoin
+		want  output
 	}{
-		"simple": {input: 10, want: 10},
-		"zero":   {input: 0, want: 0},
-		"float":  {input: 12.15, want: 12.15},
+		"simple": {input: 10, want: output{nil, 10}},
+		"zero":   {input: 0, want: output{nil, 0}},
+		"float":  {input: 12.15, want: output{nil, 12.5}},
+
+		"negative": {input: -1.56, want: output{wallet.ErrNegDeposite, 0}},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
+			var w wallet.Wallet
 
-			var wallet Wallet
+			got := w.Deposit(tc.input)
+			if got != tc.want.err {
+				t.Fatalf("Erorr expected in test %s. Expected:\n%s\nGot:\n%s", name, tc.want.err, got)
+			}
 
-			got := wallet.Deposit(tc.input)
-			if got != nil {
-				t.Fatalf("Erorr expected in test %s. Expected:\nnil\nGot:\n%s", name, got)
-			} else if math.Abs(float64(wallet.Balance()-tc.want)) > 0.00000000001 {
-				t.Fatalf("Erorr expected in test %s. Expected:\n%f\nGot:\n%f", name, tc.want, wallet.Balance())
+			if math.Abs(float64(w.Balance()-tc.want.res)) > 0.00000000001 {
+				t.Fatalf("Erorr expected in test %s. Expected:\n%f\nGot:\n%f", name, tc.want, w.Balance())
 			} else {
 				t.Logf("Test %s went right", name)
 			}
@@ -48,85 +50,43 @@ func TestDepositCorrectInput(t *testing.T) {
 	}
 }
 
-//test for Deposite func with incorrect input
-func TestDepositIncorrectInput(t *testing.T) {
-	var wallet Wallet
-
-	got := wallet.Deposit(-1.256)
-	if got == nil {
-		t.Fatalf("Expcted error")
-	} else {
-		t.Log("Test went right")
-	}
-}
-
-//structure for input variables
-type input struct {
-	deopsitInp Bitcoin
-	withdraw   Bitcoin
-}
-
-//test for Withdraw func with correct input
+// test for Withdraw func
 func TestWithdrawCorrectInput(t *testing.T) {
 	tests := map[string]struct {
 		input input
-		want  Bitcoin
+		want  output
 	}{
-		"simple":            {input: input{20, 10}, want: 10},
-		"zero result":       {input: input{100, 100}, want: 0},
-		"float":             {input: input{123.567, 8.9}, want: 114.667},
-		"float zero result": {input: input{5.6789, 5.6789}, want: 0},
-		"zero withdraw":     {input: input{12.3, 0}, want: 12.3},
-		"big precision":     {input: input{1234.123456789, 12.815647935111}, want: 1221.307808853889},
+		"simple":            {input: input{20, 10}, want: output{nil, 10}},
+		"zero result":       {input: input{100, 100}, want: output{nil, 0}},
+		"float":             {input: input{123.567, 8.9}, want: output{nil, 114.667}},
+		"float zero result": {input: input{5.6789, 5.6789}, want: output{nil, 0}},
+		"zero withdraw":     {input: input{12.3, 0}, want: output{nil, 12.3}},
+		"big precision":     {input: input{1234.123456789, 12.815647935111}, want: output{nil, 1221.307808853889}},
+
+		"negtive withdraw":               {input: input{11.3, -16.5}, want: output{wallet.ErrNegWithdraw, 11.3}},
+		"float withdraw more than exist": {input: input{1.23567, 8.9}, want: output{wallet.ErrNotEnoughOnBalance, 1.23567}},
+		"withdraw more than exist":       {input: input{10, 20}, want: output{wallet.ErrNotEnoughOnBalance, 10}},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
+			var w wallet.Wallet
 
-			var wallet Wallet
-
-			got := wallet.Deposit(tc.input.deopsitInp)
+			got := w.Deposit(tc.input.deopsitInp)
 			if got != nil {
+				t.Fatalf("Erorr expected in test %s. Deposite error:\n%s", name, got)
+			}
+
+			got = w.Withdraw(tc.input.withdraw)
+
+			if got != tc.want.err {
 				t.Fatalf("Erorr expected in test %s. Expected:\nnil\nGot:\n%s", name, got)
 			}
 
-			got = wallet.Withdraw(tc.input.withdraw)
-			if got != nil {
-				t.Fatalf("Erorr expected in test %s. Expected:\nnil\nGot:\n%s", name, got)
-			} else if math.Abs(float64(wallet.Balance()-tc.want)) > 0.00000000001 {
-				t.Fatalf("Erorr expected in test %s. Expected:\n%.15f\nGot:\n%.15f", name, tc.want, wallet.balance)
+			if math.Abs(float64(w.Balance()-tc.want.res)) > 0.00000000001 {
+				t.Fatalf("Erorr expected in test %s. Expected:\n%.15f\nGot:\n%.15f", name, tc.want, w.Balance())
 			} else {
 				t.Logf("Test %s went right", name)
-			}
-		})
-	}
-}
-
-//test for Withdraw func with incorrect input
-func TestWithdrawIncorrectInput(t *testing.T) {
-	tests := map[string]struct {
-		input input
-	}{
-		"withdraw more than exist":       {input: input{10, 20}},
-		"float withdraw more than exist": {input: input{1.23567, 8.9}},
-		"negtive withdraw":               {input: input{11.3, -16.5}},
-	}
-
-	for name, tc := range tests {
-		t.Run(name, func(t *testing.T) {
-
-			var wallet Wallet
-
-			got := wallet.Deposit(tc.input.deopsitInp)
-			if got != nil {
-				t.Fatalf("Erorr expected in test %s. Expected:\nnil\nGot:\n%s", name, got)
-			}
-
-			got = wallet.Withdraw(tc.input.withdraw)
-			if got == nil {
-				t.Fatalf("Erorr expected in test %s. Expected:\nerror\nGot:nill", name)
-			} else {
-				t.Log("Test went right")
 			}
 		})
 	}
