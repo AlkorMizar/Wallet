@@ -1,6 +1,7 @@
 package wallet_test
 
 import (
+	"errors"
 	"math"
 	"testing"
 
@@ -37,7 +38,7 @@ func TestDeposit(t *testing.T) {
 			var w wallet.Wallet
 
 			got := w.Deposit(tc.input)
-			if got != tc.want.err {
+			if !errors.Is(got, tc.want.err) {
 				t.Fatalf("Erorr expected in test %s. Expected:\n%s\nGot:\n%s", name, tc.want.err, got)
 			}
 
@@ -79,7 +80,7 @@ func TestWithdraw(t *testing.T) {
 
 			got = w.Withdraw(tc.input.withdraw)
 
-			if got != tc.want.err {
+			if !errors.Is(got, tc.want.err) {
 				t.Fatalf("Erorr expected in test %s. Expected:\n%s\nGot:\n%s", name, tc.want.err, got)
 			}
 
