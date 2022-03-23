@@ -27,7 +27,7 @@ func TestDeposit(t *testing.T) {
 	}{
 		"simple": {input: 10, want: output{nil, 10}},
 		"zero":   {input: 0, want: output{nil, 0}},
-		"float":  {input: 12.15, want: output{nil, 12.5}},
+		"float":  {input: 12.15, want: output{nil, 12.15}},
 
 		"negative": {input: -1.56, want: output{wallet.ErrNegDeposite, 0}},
 	}
@@ -42,7 +42,7 @@ func TestDeposit(t *testing.T) {
 			}
 
 			if math.Abs(float64(w.Balance()-tc.want.res)) > 0.00000000001 {
-				t.Fatalf("Erorr expected in test %s. Expected:\n%f\nGot:\n%f", name, tc.want, w.Balance())
+				t.Fatalf("Erorr expected in test %s. Expected:\n%f\nGot:\n%f", name, tc.want.res, w.Balance())
 			} else {
 				t.Logf("Test %s went right", name)
 			}
@@ -84,7 +84,7 @@ func TestWithdrawCorrectInput(t *testing.T) {
 			}
 
 			if math.Abs(float64(w.Balance()-tc.want.res)) > 0.00000000001 {
-				t.Fatalf("Erorr expected in test %s. Expected:\n%.15f\nGot:\n%.15f", name, tc.want, w.Balance())
+				t.Fatalf("Erorr expected in test %s. Expected:\n%.15f\nGot:\n%.15f", name, tc.want.res, w.Balance())
 			} else {
 				t.Logf("Test %s went right", name)
 			}
