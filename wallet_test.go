@@ -80,7 +80,7 @@ func TestWithdrawCorrectInput(t *testing.T) {
 			got = w.Withdraw(tc.input.withdraw)
 
 			if got != tc.want.err {
-				t.Fatalf("Erorr expected in test %s. Expected:\nnil\nGot:\n%s", name, got)
+				t.Fatalf("Erorr expected in test %s. Expected:\n%s\nGot:\n%s", name, tc.want.err, got)
 			}
 
 			if math.Abs(float64(w.Balance()-tc.want.res)) > 0.00000000001 {
