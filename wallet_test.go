@@ -2,35 +2,38 @@ package wallet_test
 
 import (
 	"errors"
-	"math"
 	"testing"
 
 	wallet "github.com/AlkorMizar/Wallet"
 )
 
-// structure for input variables
-type input struct {
-	deopsitInp wallet.Bitcoin
-	withdraw   wallet.Bitcoin
-}
-
-// structure for expected output
-type output struct {
-	err error
-	res wallet.Bitcoin
-}
-
 // test for Deposite func
 func TestDeposit(t *testing.T) {
 	tests := map[string]struct {
-		input wallet.Bitcoin
-		want  output
+		input   wallet.Bitcoin
+		wantErr error
+		wantVal wallet.Bitcoin
 	}{
-		"simple": {input: 10, want: output{nil, 10}},
-		"zero":   {input: 0, want: output{nil, 0}},
-		"float":  {input: 12.15, want: output{nil, 12.15}},
-
-		"negative": {input: -1.56, want: output{wallet.ErrIncorrectInput, 0}},
+		"simple": {
+			input:   10,
+			wantErr: nil,
+			wantVal: 10,
+		},
+		"zero": {
+			input:   0,
+			wantErr: nil,
+			wantVal: 0,
+		},
+		"float": {
+			input:   12.15,
+			wantErr: nil,
+			wantVal: 12.15,
+		},
+		"negative": {
+			input:   -1.56,
+			wantErr: wallet.ErrIncorrectInput,
+			wantVal: 0,
+		},
 	}
 
 	for name, tc := range tests {
@@ -38,14 +41,12 @@ func TestDeposit(t *testing.T) {
 			var w wallet.Wallet
 
 			got := w.Deposit(tc.input)
-			if !errors.Is(got, tc.want.err) {
-				t.Fatalf("Erorr expected in test %s. Expected:\n%s\nGot:\n%s", name, tc.want.err, got)
+			if !errors.Is(got, tc.wantErr) {
+				t.Fatalf("erorr in test %s, expected: %v, got: %v", name, tc.wantErr, got)
 			}
 
-			if math.Abs(float64(w.Balance()-tc.want.res)) > 0.00000000001 {
-				t.Fatalf("Erorr expected in test %s. Expected:\n%.15f\nGot:\n%.15f", name, tc.want.res, w.Balance())
-			} else {
-				t.Logf("Test %s went right", name)
+			if w.Balance() != tc.wantVal {
+				t.Fatalf("erorr in test %s, expected: %.15f ,got: %.15f", name, tc.wantVal, w.Balance())
 			}
 		})
 	}
@@ -54,40 +55,84 @@ func TestDeposit(t *testing.T) {
 // test for Withdraw func
 func TestWithdraw(t *testing.T) {
 	tests := map[string]struct {
-		input input
-		want  output
+		inputDepos  wallet.Bitcoin
+		inputWithdr wallet.Bitcoin
+		wantErr     error
+		wantVal     wallet.Bitcoin
 	}{
-		"simple":            {input: input{20, 10}, want: output{nil, 10}},
-		"zero result":       {input: input{100, 100}, want: output{nil, 0}},
-		"float":             {input: input{123.567, 8.9}, want: output{nil, 114.667}},
-		"float zero result": {input: input{5.6789, 5.6789}, want: output{nil, 0}},
-		"zero withdraw":     {input: input{12.3, 0}, want: output{nil, 12.3}},
-		"big precision":     {input: input{1234.123456789, 12.815647935111}, want: output{nil, 1221.307808853889}},
+		"simple": {
+			inputDepos:  20,
+			inputWithdr: 10,
+			wantErr:     nil,
+			wantVal:     10},
+		"zero result": {
+			inputDepos:  100,
+			inputWithdr: 100,
+			wantErr:     nil,
+			wantVal:     0,
+		},
+		"float": {
+			inputDepos:  123.56,
+			inputWithdr: 8.9,
+			wantErr:     nil,
+			wantVal:     114.66,
+		},
+		"float zero result": {
+			inputDepos:  5.6789,
+			inputWithdr: 5.6789,
+			wantErr:     nil,
+			wantVal:     0,
+		},
+		"zero withdraw": {
+			inputDepos:  12.3,
+			inputWithdr: 0,
+			wantErr:     nil,
+			wantVal:     12.3,
+		},
+		"big precision": {
+			inputDepos:  1234.123456789,
+			inputWithdr: 12.815647935111,
+			wantErr:     nil,
+			wantVal:     1221.307808853889128,
+		},
 
-		"negtive withdraw":               {input: input{11.3, -16.5}, want: output{wallet.ErrIncorrectInput, 11.3}},
-		"float withdraw more than exist": {input: input{1.23567, 8.9}, want: output{wallet.ErrNotEnoughOnBalance, 1.23567}},
-		"withdraw more than exist":       {input: input{10, 20}, want: output{wallet.ErrNotEnoughOnBalance, 10}},
+		"negtive withdraw": {
+			inputDepos:  11.3,
+			inputWithdr: -16.5,
+			wantErr:     wallet.ErrIncorrectInput,
+			wantVal:     11.3,
+		},
+		"float withdraw more than exist": {
+			inputDepos:  1.23567,
+			inputWithdr: 8.9,
+			wantErr:     wallet.ErrNotEnoughOnBalance,
+			wantVal:     1.23567,
+		},
+		"withdraw more than exist": {
+			inputDepos:  10,
+			inputWithdr: 20,
+			wantErr:     wallet.ErrNotEnoughOnBalance,
+			wantVal:     10,
+		},
 	}
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
 			var w wallet.Wallet
 
-			got := w.Deposit(tc.input.deopsitInp)
+			got := w.Deposit(tc.inputDepos)
 			if got != nil {
-				t.Fatalf("Erorr expected in test %s. Deposite error:\n%s", name, got)
+				t.Fatalf("error during deposite : name: %s, error: %v", name, got)
 			}
 
-			got = w.Withdraw(tc.input.withdraw)
+			got = w.Withdraw(tc.inputWithdr)
 
-			if !errors.Is(got, tc.want.err) {
-				t.Fatalf("Erorr expected in test %s. Expected:\n%s\nGot:\n%s", name, tc.want.err, got)
+			if !errors.Is(got, tc.wantErr) {
+				t.Fatalf("erorr in test %s, expected: %v, got: %v", name, tc.wantErr, got)
 			}
 
-			if math.Abs(float64(w.Balance()-tc.want.res)) > 0.00000000001 {
-				t.Fatalf("Erorr expected in test %s. Expected:\n%.15f\nGot:\n%.15f", name, tc.want.res, w.Balance())
-			} else {
-				t.Logf("Test %s went right", name)
+			if w.Balance() != tc.wantVal {
+				t.Fatalf("erorr in test %s want: %.15f, got: %.15f", name, tc.wantVal, w.Balance())
 			}
 		})
 	}
