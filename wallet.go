@@ -16,7 +16,7 @@ type Wallet struct {
 }
 
 // Balance get balance of this wallet
-func (w Wallet) Balance() (res Bitcoin) {
+func (w *Wallet) Balance() (res Bitcoin) {
 	return w.balance
 }
 
@@ -46,4 +46,8 @@ func (w *Wallet) Withdraw(bit Bitcoin) error {
 	w.balance -= bit
 
 	return nil
+}
+
+func InitWallet() *Wallet {
+	return &Wallet{}
 }
