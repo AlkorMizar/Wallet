@@ -161,7 +161,9 @@ func TestCocurrency(t *testing.T) {
 	}
 
 	wg.Wait()
+
 	tolerance := 0.00001
+
 	if diff := math.Abs(float64(w.Balance() - want)); diff > tolerance {
 		t.Fatalf("erorr in test want: %f, got: %f", want, w.Balance())
 	}
