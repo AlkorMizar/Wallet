@@ -2,6 +2,8 @@ package wallet_test
 
 import (
 	"errors"
+	"math"
+	"sync"
 	"testing"
 
 	wallet "github.com/AlkorMizar/Wallet"
@@ -38,7 +40,7 @@ func TestDeposit(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			var w wallet.Wallet
+			w := wallet.InitWallet()
 
 			got := w.Deposit(tc.input)
 			if !errors.Is(got, tc.wantErr) {
@@ -118,7 +120,7 @@ func TestWithdraw(t *testing.T) {
 
 	for name, tc := range tests {
 		t.Run(name, func(t *testing.T) {
-			var w wallet.Wallet
+			w := wallet.InitWallet()
 
 			got := w.Deposit(tc.inputDepos)
 			if got != nil {
@@ -135,5 +137,34 @@ func TestWithdraw(t *testing.T) {
 				t.Fatalf("erorr in test %s want: %.15f, got: %.15f", name, tc.wantVal, w.Balance())
 			}
 		})
+	}
+}
+
+func TestCocurrency(t *testing.T) {
+	iterations := 10000
+	witdr := wallet.Bitcoin(5.6478)
+	want := wallet.Bitcoin(10)
+
+	w := wallet.InitWallet()
+	_ = w.Deposit(witdr*wallet.Bitcoin(iterations) + want)
+
+	var wg sync.WaitGroup
+
+	wg.Add(iterations)
+
+	for i := 0; i < iterations; i++ {
+		go func() {
+			defer wg.Done()
+
+			_ = w.Withdraw(witdr)
+		}()
+	}
+
+	wg.Wait()
+
+	tolerance := 0.00001
+
+	if diff := math.Abs(float64(w.Balance() - want)); diff > tolerance {
+		t.Fatalf("erorr in test want: %f, got: %f", want, w.Balance())
 	}
 }
